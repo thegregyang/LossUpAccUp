@@ -1,4 +1,4 @@
-# When Loss Decreases, Accuracy Increases...?
+# When Loss Decreases, Accuracy Increases...Right?
 ...at least that seems to be the conventional wisdom.
 They can sometimes go out of (anti-)sync, like the ResNet example below (noted by [Guo et al.](https://arxiv.org/abs/1706.04599)), but here we also illustrate an extreme case where loss and accuracy become almost perfectly *correlated*, like the LeNet example below.
 This in particular means that, if one were to determine "overfitting" based on validation loss, one could be *way* wrong, if accuracy is the goal.
@@ -33,6 +33,28 @@ So the cross entropy as training loss has more going for it than just being a go
 # Weird Phenomenon But OK?
 I don't think this observation is useful for settings where we have better validation metrics we can track, such as accuracy in classification tasks or BLEU score in machine translation.
 But this does provoke some thoughts in domains like language modeling where loss/perplexity is the primary metric --- when we stop training early based on validation perplexity, are we sure we are not stopping *too early*, if our goal is to learn language?
+
+# Twitter Discussion
+
+There was a [discussion on twitter](https://twitter.com/TheGregYang/status/1260620346992087040?s=20) regarding this phenomenon.
+I ran some more experiments in response to some comments there.
+These results suggest the situation is more nuanced than one might think.
+
+- **Underparametrization.** A [few](https://twitter.com/joshim5/status/1260693557352022020?s=20) [comments](https://twitter.com/PreetumNakkiran/status/1260632443704324096?s=20) suggested that underparametrized networks most likely won't see this misleading validation loss overfitting. I trained a smaller LeNet that gets <90% training accuracy but still see the phenomenon. So, in language modeling with large datasets (and relatively underparametrized models), we still have reason to not trust perplexity too much.
+
+    [Notebook](LeNet-Small.ipynb)
+
+    [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/thegregyang/LossUpAccUp/blob/master/LeNet-Small.ipynb)
+
+    <img src="lenet-small.png" width="700">
+
+- **Normalization.** Quite a few comments [[1](https://twitter.com/AnimaAnandkumar/status/1260635929074491392?s=20), [2](https://twitter.com/PreetumNakkiran/status/1260627311721775104?s=20), [3](https://twitter.com/deepcohen/status/1260629937595330560?s=20), [4](https://twitter.com/jxbz/status/1260644000681177088?s=20)] suggested that if the weights or logits are normalized in some way, then we wouldn't see this misleading validation loss overfitting. I put batchnorm on every layer and also a final layer norm (without affine parameters) on the logits, but still see the phenomenon, though here the validation loss doesn't blow up nearly as much as before.
+
+    [Notebook](LeNet-Normalized-Logits.ipynb)
+
+    [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/thegregyang/LossUpAccUp/blob/master/LeNet-Normalized-Logits.ipynb)
+
+    <img src="lenet-normalized-logits.png" width="700">
 
 # Some Related Links
 
